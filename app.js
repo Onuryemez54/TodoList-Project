@@ -23,10 +23,14 @@ function eventListeners() {
 
 function addTodo(e) {
 
-    const newTodo = todoInput.value.trim();
+    const newTodo = todoInput.value.trim()[0].toUpperCase() + todoInput.value.trim().slice(1);
 
     if (newTodo === "") {
         showAlert("danger", "Please enter a todo...");
+    }
+    else if( checkTodos(newTodo)) {
+        showAlert("info", "Please enter a different value");
+        todoInput.value = "";
     }
     else {
         addTodoToUI(newTodo);   
@@ -56,6 +60,10 @@ function showAlert(type, message) {
 
 }
 
+function checkTodos(todo) {
+    let todos = getTodosFromStorage();
+    return todos.includes(todo)
+}
 
 
 function addTodoToUI(newTodo) {
@@ -127,7 +135,7 @@ function deleteTodo(e) {
 
         deleteTodoFromStorage(e.target.parentElement.parentElement.textContent); 
 
-        showAlert("success", "Todo was successfully deleted...");
+        showAlert("primary", "Todo was successfully deleted...");
     }
 }
 
@@ -178,6 +186,5 @@ function clearAllTodos(e) {
         }
     }
 
-  
     localStorage.removeItem("todos");
 }
