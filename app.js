@@ -1,5 +1,3 @@
-
-
 const form = document.querySelector("#todo-form");
 const todoInput = document.querySelector("#todo");
 const todoList = document.querySelector(".list-group");
@@ -8,183 +6,135 @@ const secondCardBody = document.querySelectorAll(".card-body")[1];
 const filter = document.querySelector("#filter");
 const clearButton = document.querySelector("#clear-todos");
 
-eventListeners(); 
+eventListeners();
 
 function eventListeners() {
-
-    form.addEventListener("submit", addTodo);
-    document.addEventListener("DOMContentLoaded", loadAllTodosToUI);
-    secondCardBody.addEventListener("click", deleteTodo);
-    filter.addEventListener("keyup", filterTodos);
-    clearButton.addEventListener("click", clearAllTodos);
+  form.addEventListener("submit", addTodo);
+  document.addEventListener("DOMContentLoaded", loadAllTodosToUI);
+  secondCardBody.addEventListener("click", deleteTodo);
+  filter.addEventListener("keyup", filterTodos);
+  clearButton.addEventListener("click", clearAllTodos);
 }
-
-
 
 function addTodo(e) {
+  const newTodo = todoInput.value.trim();
 
-    const newTodo = todoInput.value.trim()[0].toUpperCase() + todoInput.value.trim().slice(1);
+  if (newTodo === "") {
+    showAlert("danger", "Please enter a todo...");
+  } else if (checkTodos(newTodo)) {
+    showAlert("info", "Please enter a different value");
+    todoInput.value = "";
+  } else {
+    addTodoToUI(newTodo);
+    addTodoToStorage(newTodo);
+    showAlert("success", "Todo was successfully entered...");
+  }
 
-    if (newTodo === "") {
-        showAlert("danger", "Please enter a todo...");
-    }
-    else if( checkTodos(newTodo)) {
-        showAlert("info", "Please enter a different value");
-        todoInput.value = "";
-    }
-    else {
-        addTodoToUI(newTodo);   
-        addTodoToStorage(newTodo);
-        showAlert("success", "Todo was successfully entered...");
-    }
-
-    e.preventDefault()
+  e.preventDefault();
 }
-
 
 function showAlert(type, message) {
+  const alert = document.createElement("div");
 
-    const alert = document.createElement("div");
+  alert.className = `alert alert-${type}`;
 
-    alert.className = `alert alert-${type}`;
+  alert.textContent = message;
 
-    alert.textContent = message;
+  firstCardBody.appendChild(alert);
 
-    firstCardBody.appendChild(alert);
-
-    setTimeout(     
-        function () {
-            alert.remove();
-        }, 1000
-    );
-
+  setTimeout(function () {
+    alert.remove();
+  }, 1000);
 }
-
-function checkTodos(todo) {
-    let todos = getTodosFromStorage();
-    return todos.includes(todo)
-}
-
 
 function addTodoToUI(newTodo) {
+  const listItem = document.createElement("li");
+  listItem.className = "list-group-item d-flex justify-content-between";
 
-    const listItem = document.createElement("li");
-    listItem.className = "list-group-item d-flex justify-content-between";
+  const newTodoItem = newTodo[0].toUpperCase() + newTodo.slice(1);
 
-    const link = document.createElement("a");
-    link.href = "#";
-    link.className = "delete-item";
-    link.innerHTML = "<i class='fa fa-remove'></i>";
+  const link = document.createElement("a");
+  link.href = "#";
+  link.className = "delete-item";
+  link.innerHTML = "<i class='fa fa-remove'></i>";
 
-    listItem.appendChild(document.createTextNode(newTodo));
+  listItem.appendChild(document.createTextNode(newTodoItem));
 
-    listItem.appendChild(link);
+  listItem.appendChild(link);
 
-    todoList.appendChild(listItem);
+  todoList.appendChild(listItem);
 
-    todoInput.value = "";
-
+  todoInput.value = "";
 }
 
 function getTodosFromStorage() {
-    let todos;
-
-    if (localStorage.getItem("todos") === null) {
-
-        todos = [];
-    } else {
-        todos = JSON.parse(localStorage.getItem("todos"));
-    }
-    return todos;
+  let todos = JSON.parse(localStorage.getItem("todos")) || [];
+  return todos;
 }
 
-
-
-
+function checkTodos(todo) {
+  let todos = getTodosFromStorage();
+  return todos.includes(todo);
+}
 function addTodoToStorage(newTodo) {
+  let todos = getTodosFromStorage();
 
+  todos.push(newTodo);
 
-    let todos = getTodosFromStorage();
-
-    todos.push(newTodo);
-
-    localStorage.setItem("todos", JSON.stringify(todos));
-
+  localStorage.setItem("todos", JSON.stringify(todos));
 }
-
-
 
 function loadAllTodosToUI() {
+  let todos = getTodosFromStorage();
 
-    let todos = getTodosFromStorage();
-
-    todos.forEach(
-        function (todo) {
-            addTodoToUI(todo);  
-        }
-    )
+  todos.forEach(function (todo) {
+    addTodoToUI(todo);
+  });
 }
-
-
 
 function deleteTodo(e) {
+  if (e.target.className === "fa fa-remove") {
+    e.target.parentElement.parentElement.remove();
 
-    if (e.target.className === "fa fa-remove") {
+    deleteTodoFromStorage(e.target.parentElement.parentElement.textContent);
 
-        e.target.parentElement.parentElement.remove();
-
-        deleteTodoFromStorage(e.target.parentElement.parentElement.textContent); 
-
-        showAlert("primary", "Todo was successfully deleted...");
-    }
+    showAlert("primary", "Todo was successfully deleted...");
+  }
 }
-
-
-
 
 function deleteTodoFromStorage(deleteFromStorage) {
+  let todos = getTodosFromStorage();
 
-    let todos = getTodosFromStorage();
-
-    todos.forEach(
-        function (todo, index) {
-            if (todo === deleteFromStorage) {
-                todos.splice(index, 1);
-            }
-        }
-    )
-    localStorage.setItem("todos", JSON.stringify(todos));
+  todos.forEach(function (todo, index) {
+    if (todo === deleteFromStorage) {
+      todos.splice(index, 1);
+    }
+  });
+  localStorage.setItem("todos", JSON.stringify(todos));
 }
-
-
 
 function filterTodos(e) {
-    const filterValue = e.target.value.toLowerCase();
+  const filterValue = e.target.value.toLowerCase();
 
-    const listItems = document.querySelectorAll(".list-group-item");
+  const listItems = document.querySelectorAll(".list-group-item");
 
-    listItems.forEach(
-        function (lists) {
-            const text = lists.textContent.toLowerCase();
+  listItems.forEach(function (list) {
+    const text = list.textContent.toLowerCase();
 
-            if (text.indexOf(filterValue) === -1) {
-                lists.setAttribute("style", "display : none !important");
-            } else {
-                lists.setAttribute("style", "display : block");
-            }
-        }
-    )
+    if (text.indexOf(filterValue) === -1) {
+      list.setAttribute("style", "display : none !important");
+    } else {
+      list.setAttribute("style", "display : block");
+    }
+  });
 }
 
-
-
-
 function clearAllTodos(e) {
-    if (confirm("Are you sure you want to delete all?")) {
-        while (todoList.firstElementChild !== null) {
-            todoList.removeChild(todoList.firstElementChild); 
-        }
+  if (confirm("Are you sure you want to delete all?")) {
+    while (todoList.firstElementChild !== null) {
+      todoList.removeChild(todoList.firstElementChild);
     }
+  }
 
-    localStorage.removeItem("todos");
+  localStorage.removeItem("todos");
 }
